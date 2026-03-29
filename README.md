@@ -14,7 +14,7 @@ Based on Nacos 1.x Open API. Supports authentication (accessToken) with auto-ref
 ## Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/nacos-mcp-server.git
+git clone https://github.com/litianfu1997/nacos-mcp-server.git
 cd nacos-mcp-server
 npm install
 ```
