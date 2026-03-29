@@ -1,0 +1,29 @@
+{
+  "name": "nacos-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Nacos Config Center - read/write Nacos configs via Claude Code",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "nacos-mcp-server": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "nacos",
+    "config-center",
+    "claude-code",
+    "spring-cloud"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.28.0",
+    "zod": "^3.25.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
