@@ -3,17 +3,55 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
+
+const PROJECT_CONFIG_PATH = join(process.cwd(), ".nacos-mcp.json");
+const GLOBAL_CONFIG_PATH = join(homedir(), ".nacos-mcp.json");
+
+function loadConfig() {
+  const defaults = {
+    serverAddr: "127.0.0.1:8848",
+    contextPath: "/nacos",
+    namespace: "",
+    group: "DEFAULT_GROUP",
+    username: "nacos",
+    password: "nacos",
+  };
+  // 优先级: 项目目录 ~/.nacos-mcp.json > 用户目录 ~/.nacos-mcp.json > 环境变量 > 默认值
+  for (const configPath of [PROJECT_CONFIG_PATH, GLOBAL_CONFIG_PATH]) {
+    try {
+      if (existsSync(configPath)) {
+        const file = JSON.parse(readFileSync(configPath, "utf-8"));
+        console.error(`[Nacos] loaded config from ${configPath}`);
+        return { ...defaults, ...file };
+      }
+    } catch (e) {
+      console.error(`[Nacos] config load error (${configPath}): ${e.message}`);
+    }
+  }
+  return {
+    serverAddr: process.env.NACOS_SERVER_ADDR || defaults.serverAddr,
+    contextPath: process.env.NACOS_CONTEXT_PATH || defaults.contextPath,
+    namespace: process.env.NACOS_NAMESPACE || defaults.namespace,
+    group: process.env.NACOS_GROUP || defaults.group,
+    username: process.env.NACOS_USERNAME || defaults.username,
+    password: process.env.NACOS_PASSWORD || defaults.password,
+  };
+}
 
 // ─── NacosClient: 封装 Nacos 1.x Open API ───────────────────────────
 class NacosClient {
   constructor() {
-    this.serverAddr = process.env.NACOS_SERVER_ADDR || "127.0.0.1:8848";
-    this.contextPath = (process.env.NACOS_CONTEXT_PATH || "/nacos").replace(/\/+$/, "");
+    const cfg = loadConfig();
+    this.serverAddr = cfg.serverAddr;
+    this.contextPath = cfg.contextPath.replace(/\/+$/, "");
     this.baseUrl = `http://${this.serverAddr}${this.contextPath}`;
-    this.username = process.env.NACOS_USERNAME || "nacos";
-    this.password = process.env.NACOS_PASSWORD || "nacos";
-    this.defaultNamespace = process.env.NACOS_NAMESPACE || "";
-    this.defaultGroup = process.env.NACOS_GROUP || "DEFAULT_GROUP";
+    this.username = cfg.username;
+    this.password = cfg.password;
+    this.defaultNamespace = cfg.namespace;
+    this.defaultGroup = cfg.group;
     this.accessToken = null;
     this.tokenExpireTime = 0;
   }
